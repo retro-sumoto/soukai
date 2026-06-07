@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 ｜ 城下町洲本再生委員会 総会</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700&family=Shippori+Mincho:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:       #1a1208;
+      --paper:     #f5f0e8;
+      --gold:      #8b6914;
+      --gold-lt:   #c9a84c;
+      --border:    #c8b99a;
+      --muted:     #6b5b3e;
+      --attend:    #2d5a27;
+      --absent:    #7a2020;
+      --bg-attend: #edf6ec;
+      --bg-absent: #f9eded;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Serif JP', serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(139,105,20,.06) 31px, rgba(139,105,20,.06) 32px);
+    }
+    header {
+      background: var(--ink);
+      color: var(--gold-lt);
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 3px solid var(--gold);
+      flex-wrap: wrap;
+    }
+    header .kamon { font-size: 1.6rem; opacity: .8; }
+    header .titles { flex: 1; }
+    header h1 { font-family: 'Shippori Mincho', serif; font-size: 1.25rem; letter-spacing: .2em; color: var(--gold-lt); }
+    header .sub { font-size: .72rem; color: #a09070; letter-spacing: .15em; margin-top: .2rem; }
+    .header-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+    .btn {
+      padding: .5rem 1.1rem;
+      border-radius: 3px;
+      border: none;
+      font-family: 'Noto Serif JP', serif;
+      font-size: .82rem;
+      cursor: pointer;
+      letter-spacing: .08em;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn:hover { opacity: .82; transform: translateY(-1px); }
+    .btn-gold    { background: var(--gold); color: #fff; }
+    .btn-outline { background: transparent; color: var(--gold-lt); border: 1px solid var(--gold-lt); }
+    .btn-csv     { background: #2d5a27; color: #fff; }
+    main { max-width: 1200px; margin: 0 auto; padding: 1.8rem 1.4rem 3rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.8rem; }
+    @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.2rem 1.4rem;
+      box-shadow: 0 1px 8px rgba(139,105,20,.08);
+    }
+    .stat-card .label { font-size: .72rem; letter-spacing: .2em; color: var(--muted); margin-bottom: .4rem; }
+    .stat-card .value { font-family: 'Shippori Mincho', serif; font-size: 2rem; font-weight: 700; line-height: 1; }
+    .stat-card.attend .value { color: var(--attend); }
+    .stat-card.absent .value { color: var(--absent); }
+    .progress-wrap { margin-top: .6rem; background: #e8e0d0; border-radius: 99px; height: 6px; overflow: hidden; }
+    #progress-bar { height: 100%; background: var(--attend); border-radius: 99px; transition: width .6s ease; width: 0%; }
+    .pct-label { font-size: .78rem; color: var(--muted); margin-top: .3rem; }
+    .toolbar { display: flex; align-items: center; gap: .8rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .toolbar label { font-size: .82rem; color: var(--muted); }
+    #filter-select {
+      padding: .45rem .8rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: #fff;
+      font-family: 'Noto Serif JP', serif;
+      font-size: .85rem;
+      color: var(--ink);
+    }
+    #table-wrap { overflow-x: auto; }
+    #rsvp-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      box-shadow: 0 1px 12px rgba(139,105,20,.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    #rsvp-table thead th {
+      background: var(--ink);
+      color: var(--gold-lt);
+      font-family: 'Shippori Mincho', serif;
+      font-size: .8rem;
+      letter-spacing: .2em;
+      padding: .85rem 1rem;
+      text-align: left;
+      white-space: nowrap;
+    }
+    #rsvp-table tbody tr { border-bottom: 1px solid #ede5d4; transition: background .15s; }
+    #rsvp-table tbody tr:hover { background: #faf7f0; }
+    #rsvp-table tbody td { padding: .8rem 1rem; font-size: .88rem; vertical-align: middle; }
+    .num { color: var(--border); width: 2.5rem; text-align: center; }
+    .muted-cell { color: var(--border); }
+    .name-cell { font-weight: 500; white-space: nowrap; }
+    .email-cell a { color: var(--gold); text-decoration: none; font-size: .82rem; }
+    .email-cell a:hover { text-decoration: underline; }
+    .address-cell { font-size: .8rem; color: var(--muted); max-width: 180px; line-height: 1.4; }
+    .empty-row { text-align: center; padding: 2rem !important; color: var(--muted); font-size: .9rem; }
+    .badge { display: inline-block; padding: .2rem .7rem; border-radius: 99px; font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
+    .badge-attend { background: var(--bg-attend); color: var(--attend); }
+    .badge-absent { background: var(--bg-absent); color: var(--absent); }
+    .delegate-cell { line-height: 1.6; }
+    .delegate-type {
+      display: inline-block;
+      background: #f0e9d8;
+      color: var(--muted);
+      font-size: .72rem;
+      border-radius: 3px;
+      padding: .1rem .45rem;
+      margin-right: .3rem;
+    }
+    .delegate-name { font-weight: 500; }
+    .btn-dl {
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      padding: .3rem .85rem;
+      border-radius: 3px;
+      font-size: .78rem;
+      cursor: pointer;
+      font-family: 'Noto Serif JP', serif;
+      letter-spacing: .08em;
+      transition: opacity .2s;
+      white-space: nowrap;
+    }
+    .btn-dl:hover { opacity: .8; }
+    #loading { display: flex; align-items: center; justify-content: center; padding: 3rem; gap: .8rem; color: var(--muted); font-size: .9rem; }
+    .spinner { width: 22px; height: 22px; border: 2px solid #e8dfc9; border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .page-footer { margin-top: 2.4rem; font-size: .72rem; color: var(--border); text-align: center; letter-spacing: .1em; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="kamon">🏯</span>
+  <div class="titles">
+    <h1>総会 管理画面</h1>
+    <p class="sub">城下町洲本再生委員会</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" id="btn-refresh">🔄 更新</button>
+    <button class="btn btn-gold"    id="btn-download-all">📄 全委任状</button>
+    <button class="btn btn-csv"     id="btn-csv">⬇ CSV出力</button>
+  </div>
+</header>
+
+<main>
+  <div class="summary-grid">
+    <div class="stat-card">
+      <p class="label">回答合計</p>
+      <p class="value" id="total-count">－</p>
+    </div>
+    <div class="stat-card attend">
+      <p class="label">出席</p>
+      <p class="value" id="attend-count">－</p>
+      <div class="progress-wrap"><div id="progress-bar"></div></div>
+      <p class="pct-label">出席率 <span id="attend-pct">－</span>%</p>
+    </div>
+    <div class="stat-card absent">
+      <p class="label">欠席</p>
+      <p class="value" id="absent-count">－</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label for="filter-select">表示：</label>
+    <select id="filter-select">
+      <option value="all">すべて</option>
+      <option value="attending">出席のみ</option>
+      <option value="absent">欠席のみ</option>
+    </select>
+  </div>
+
+  <div id="loading"><div class="spinner"></div>データを読み込み中…</div>
+
+  <div id="table-wrap" style="display:none;">
+    <table id="rsvp-table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>お名前</th>
+          <th>メール</th>
+          <th>出欠</th>
+          <th>委任先</th>
+          <th>ご住所</th>
+          <th>委任状</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <p class="page-footer">© 城下町洲本再生委員会 — 管理者専用ページ</p>
+</main>
+
+<script type="module">
+  import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, orderBy, query }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAx9hxL3InRQUU1RYZ6ilrejFPrzFpkW5s",
+    authDomain:        "saisei-fca58.firebaseapp.com",
+    projectId:         "saisei-fca58",
+    storageBucket:     "saisei-fca58.firebasestorage.app",
+    messagingSenderId: "530505211797",
+    appId:             "1:530505211797:web:7d43f127e6abf5edcde09c",
+    measurementId:     "G-ZZ1G98KX91"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  let allRecords = [];
+
+  // ── XSS 対策 ──
+  function h(s) {
+    return String(s ?? '').replace(/[&<>"']/g,
+      c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  // ── データ読み込み ──
+  async function loadData() {
+    document.getElementById('loading').style.display    = 'flex';
+    document.getElementById('table-wrap').style.display = 'none';
+
+    const snap = await getDocs(query(collection(db, 'rsvp'), orderBy('createdAt', 'desc')));
+    allRecords  = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+
+    renderSummary(allRecords);
+    renderTable(allRecords);
+
+    document.getElementById('loading').style.display    = 'none';
+    document.getElementById('table-wrap').style.display = 'block';
+  }
+
+  // ── サマリー ──
+  function renderSummary(records) {
+    const total  = records.length;
+    const attend = records.filter(r => r.status === 'attending').length;
+    const absent = records.filter(r => r.status === 'absent').length;
+    document.getElementById('total-count').textContent  = total;
+    document.getElementById('attend-count').textContent = attend;
+    document.getElementById('absent-count').textContent = absent;
+    const pct = total > 0 ? Math.round((attend / total) * 100) : 0;
+    document.getElementById('attend-pct').textContent   = pct;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  }
+
+  // ── テーブル描画 ──
+  function renderTable(records) {
+    const tbody = document.querySelector('#rsvp-table tbody');
+    tbody.innerHTML = '';
+
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">データがありません</td></tr>';
+      return;
+    }
+
+    records.forEach((r, i) => {
+      const isAttend = r.status === 'attending';
+      const badge    = isAttend
+        ? '<span class="badge badge-attend">出席</span>'
+        : '<span class="badge badge-absent">欠席</span>';
+
+      const delegateCell = isAttend
+        ? '<span class="muted-cell">－</span>'
+        : `<span class="delegate-type">${h(r.delegateType || '議長')}</span><span class="delegate-name">${h(r.delegateName || r.delegateType || '議長')}</span>`;
+
+      const addressCell = isAttend
+        ? '<span class="muted-cell">－</span>'
+        : `<div class="address-cell">${h(r.address || '').replace(/\n/g,'<br>')}</div>`;
+
+      const createdAt = r.createdAt?.toDate
+        ? r.createdAt.toDate().toLocaleString('ja-JP', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})
+        : '－';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="num">${i + 1}</td>
+        <td class="name-cell">${h(r.name)}</td>
+        <td class="email-cell"><a href="mailto:${h(r.email)}">${h(r.email)}</a></td>
+        <td>${badge}</td>
+        <td class="delegate-cell">${delegateCell}</td>
+        <td>${addressCell}</td>
+        <td>${!isAttend ? `<button class="btn-dl" data-idx="${i}">委任状</button>` : ''}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.querySelectorAll('.btn-dl').forEach(btn => {
+      btn.addEventListener('click', () => downloadDelegation(records[+btn.dataset.idx]));
+    });
+  }
+
+  // ── 委任状テキスト生成 ──
+  function makeDelegationText(r) {
+    const dn = r.delegateName || r.delegateType || '議長';
+    const dt = r.delegateType || '議長';
+    const addr = r.address || '';
+    return [
+      '委　任　状',
+      '',
+      '私は、城下町洲本再生委員会総会における議決権を下記の者に委任します。',
+      '',
+      `委任者：${r.name}`,
+      `住　所：${addr}`,
+      `受任者：${dn}（${dt}）`,
+      '',
+      '以上',
+    ].join('\n');
+  }
+
+  // ── 個別ダウンロード ──
+  function downloadDelegation(r) {
+    const blob = new Blob([makeDelegationText(r)], { type: 'text/plain;charset=utf-8' });
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(blob),
+      download: `委任状_${r.name}.txt`
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+  }
+
+  // ── 全委任状ダウンロード ──
+  document.getElementById('btn-download-all').addEventListener('click', () => {
+    const absent = allRecords.filter(r => r.status === 'absent');
+    if (!absent.length) { alert('欠席者がいません。'); return; }
+
+    const text = absent.map(r => makeDelegationText(r) + '\n\n' + '─'.repeat(40)).join('\n\n');
+    const blob  = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(blob),
+      download: '委任状_一括.txt'
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  // ── CSV エクスポート ──
+  document.getElementById('btn-csv').addEventListener('click', () => {
+    const header = ['No','名前','メール','出欠','委任先区分','委任先名','住所','登録日時'];
+    const rows = allRecords.map((r, i) => {
+      const dt = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('ja-JP') : '';
+      return [i+1, r.name, r.email,
+        r.status === 'attending' ? '出席' : '欠席',
+        r.delegateType || '', r.delegateName || '',
+        r.address || '', dt
+      ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+    });
+    const csv  = '\uFEFF' + [header.join(','), ...rows].join('\n');
+    const blob  = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(blob), download: '出欠一覧.csv'
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+  });
+
+  // ── フィルター ──
+  document.getElementById('filter-select').addEventListener('change', function () {
+    const val = this.value;
+    renderTable(val === 'all' ? allRecords : allRecords.filter(r => r.status === val));
+  });
+
+  // ── 更新 ──
+  document.getElementById('btn-refresh').addEventListener('click', loadData);
+
+  // ── 初回読み込み ──
+  loadData();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>総会出欠確認 ｜ 城下町洲本再生委員会</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700&family=Shippori+Mincho:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+  <style>
+    :root {
+      --ink:     #1a1208;
+      --paper:   #f5f0e8;
+      --gold:    #8b6914;
+      --gold-lt: #c9a84c;
+      --border:  #c8b99a;
+      --muted:   #6b5b3e;
+      --accent:  #6b2c1f;
+      --success: #2d5a27;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Serif JP', serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 1rem 3rem;
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(139,105,20,.07) 31px, rgba(139,105,20,.07) 32px);
+    }
+    header {
+      width: 100%;
+      max-width: 640px;
+      text-align: center;
+      padding: 2.8rem 0 2rem;
+      border-bottom: 2px solid var(--gold);
+      margin-bottom: 2.4rem;
+    }
+    .org-name {
+      font-family: 'Shippori Mincho', serif;
+      font-size: .85rem;
+      letter-spacing: .35em;
+      color: var(--muted);
+      margin-bottom: .6rem;
+    }
+    h1 {
+      font-family: 'Shippori Mincho', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      color: var(--gold);
+      line-height: 1.4;
+    }
+    .kamon { font-size: 2.4rem; margin-bottom: .5rem; display: block; opacity: .7; }
+    .card {
+      width: 100%;
+      max-width: 640px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2rem 2.4rem;
+      box-shadow: 0 2px 24px rgba(139,105,20,.1);
+    }
+    #edit-notice {
+      display: none;
+      background: #fdf3e3;
+      border-left: 4px solid var(--gold-lt);
+      padding: .75rem 1rem;
+      margin-bottom: 1.6rem;
+      font-size: .88rem;
+      color: var(--muted);
+      border-radius: 2px;
+    }
+    .form-group { margin-bottom: 1.4rem; }
+    label {
+      display: block;
+      font-size: .82rem;
+      letter-spacing: .12em;
+      color: var(--muted);
+      margin-bottom: .45rem;
+      font-weight: 500;
+    }
+    label .req { color: var(--accent); margin-left: .2em; }
+    input[type="text"], input[type="email"], select, textarea {
+      width: 100%;
+      padding: .65rem .9rem;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-family: 'Noto Serif JP', serif;
+      font-size: .95rem;
+      color: var(--ink);
+      background: #faf8f4;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold-lt);
+      box-shadow: 0 0 0 3px rgba(201,168,76,.18);
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%238b6914'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .9rem center;
+      padding-right: 2.2rem;
+    }
+    textarea { resize: vertical; min-height: 70px; }
+    #absent-fields {
+      display: none;
+      background: #faf7f0;
+      border: 1px dashed var(--border);
+      border-radius: 4px;
+      padding: 1.2rem 1.4rem;
+      margin-top: 1rem;
+    }
+    #absent-fields .section-label {
+      font-size: .78rem;
+      letter-spacing: .2em;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      font-weight: 700;
+      border-bottom: 1px solid #e8dfc9;
+      padding-bottom: .4rem;
+    }
+    #custom-delegate-wrap { display: none; margin-top: .8rem; }
+    .submit-wrap { text-align: center; margin-top: 2rem; }
+    #submit-btn {
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      padding: .85rem 3rem;
+      font-family: 'Shippori Mincho', serif;
+      font-size: 1rem;
+      letter-spacing: .25em;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+    #submit-btn:hover:not(:disabled) { background: var(--gold-lt); transform: translateY(-1px); }
+    #submit-btn:disabled { opacity: .55; cursor: not-allowed; }
+    #success-message { display: none; text-align: center; padding: 2.4rem 1rem; }
+    #success-message .check-icon { font-size: 3rem; color: var(--success); margin-bottom: 1rem; }
+    #success-message h2 {
+      font-family: 'Shippori Mincho', serif;
+      font-size: 1.4rem;
+      color: var(--success);
+      letter-spacing: .2em;
+      margin-bottom: .75rem;
+    }
+    #success-message p { color: var(--muted); font-size: .9rem; line-height: 1.8; }
+    footer { margin-top: 2.4rem; font-size: .78rem; color: var(--border); letter-spacing: .1em; }
+    @media (max-width: 480px) { .card { padding: 1.4rem 1.2rem; } h1 { font-size: 1.35rem; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="kamon">🏯</span>
+  <p class="org-name">城下町洲本再生委員会</p>
+  <h1 id="page-title">総会 出欠確認フォーム</h1>
+</header>
+
+<div class="card">
+  <div id="edit-notice">
+    ⚠️ 編集リンクからアクセスされました。内容を変更して「変更を保存する」ボタンを押してください。
+  </div>
+
+  <form id="rsvp-form" novalidate>
+    <div class="form-group">
+      <label for="name">お名前 <span class="req">*</span></label>
+      <input type="text" id="name" placeholder="例：洲本 太郎" required>
+    </div>
+
+    <div class="form-group">
+      <label for="email">メールアドレス <span class="req">*</span></label>
+      <input type="email" id="email" placeholder="example@mail.com" required>
+    </div>
+
+    <div class="form-group">
+      <label for="status">出欠 <span class="req">*</span></label>
+      <select id="status" required>
+        <option value="">── 選択してください ──</option>
+        <option value="attending">出席</option>
+        <option value="absent">欠席</option>
+      </select>
+    </div>
+
+    <!-- 欠席時フィールド -->
+    <div id="absent-fields">
+      <p class="section-label">委任状の設定</p>
+
+      <div class="form-group">
+        <label for="address">ご住所 <span class="req">*</span></label>
+        <textarea id="address" placeholder="例：兵庫県洲本市〇〇町1-2-3" rows="2"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="delegate-type">委任先 <span class="req">*</span></label>
+        <select id="delegate-type">
+          <option value="">── 選択してください（省略時：議長）──</option>
+          <option value="議長">議長</option>
+          <option value="会長">会長</option>
+          <option value="事務局長">事務局長</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+
+      <div id="custom-delegate-wrap">
+        <div class="form-group">
+          <label for="custom-delegate-name">委任先のお名前 <span class="req">*</span></label>
+          <input type="text" id="custom-delegate-name" placeholder="委任先の氏名を入力">
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <button type="submit" id="submit-btn">送信する</button>
+    </div>
+  </form>
+
+  <div id="success-message">
+    <div class="check-icon">✅</div>
+    <h2>送信完了</h2>
+    <p>
+      ご回答いただきありがとうございます。<br>
+      確認メールをお送りしましたのでご確認ください。<br>
+      <small style="color:#aaa">（メールが届かない場合は迷惑メールフォルダをご確認ください）</small>
+    </p>
+  </div>
+</div>
+
+<footer>© 城下町洲本再生委員会</footer>
+
+<script type="module">
+  import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, updateDoc, doc }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── Firebase 設定 ──
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAx9hxL3InRQUU1RYZ6ilrejFPrzFpkW5s",
+    authDomain:        "saisei-fca58.firebaseapp.com",
+    projectId:         "saisei-fca58",
+    storageBucket:     "saisei-fca58.firebasestorage.app",
+    messagingSenderId: "530505211797",
+    appId:             "1:530505211797:web:7d43f127e6abf5edcde09c",
+    measurementId:     "G-ZZ1G98KX91"
+  };
+
+  // ── EmailJS 設定 ──
+  const EMAILJS_PUBLIC_KEY  = 'E-UbRE03t9TvRi3VF';
+  const EMAILJS_SERVICE_ID  = 'service_wxakqpa';
+  const EMAILJS_USER_TMPL   = 'template_mvwbnp9';   // 語尾9 = ユーザー宛
+  const EMAILJS_ADMIN_TMPL  = 'template_vtykqrl';   // 管理者宛
+  const ADMIN_EMAIL         = 'kvsrbe1236@yahoo.ne.jp';
+  const GITHUB_PAGES_URL    = 'https://YOUR_GITHUB_PAGES_URL'; // ← GitHub Pages URL に変更
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  function generateUUID() {
+    return crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+  }
+
+  // ── UI 制御 ──
+  const statusSelect   = document.getElementById('status');
+  const absentFields   = document.getElementById('absent-fields');
+  const delegateSelect = document.getElementById('delegate-type');
+  const customWrap     = document.getElementById('custom-delegate-wrap');
+
+  statusSelect.addEventListener('change', () => {
+    absentFields.style.display = statusSelect.value === 'absent' ? 'block' : 'none';
+  });
+  delegateSelect.addEventListener('change', () => {
+    customWrap.style.display = delegateSelect.value === 'その他' ? 'block' : 'none';
+  });
+
+  // ── フォーム値収集 ──
+  function collectValues() {
+    const name   = document.getElementById('name').value.trim();
+    const email  = document.getElementById('email').value.trim();
+    const status = statusSelect.value;
+    const address = status === 'absent' ? document.getElementById('address').value.trim() : '';
+
+    let delegateType = null, delegateName = null;
+    if (status === 'absent') {
+      delegateType = delegateSelect.value || '議長';
+      delegateName = delegateType === 'その他'
+        ? (document.getElementById('custom-delegate-name').value.trim() || '不明')
+        : delegateType;
+    }
+    return { name, email, status, address, delegateType, delegateName };
+  }
+
+  // ── バリデーション ──
+  function validate({ name, email, status, address, delegateType, delegateName }) {
+    if (!name)   { alert('お名前を入力してください。'); return false; }
+    if (!email)  { alert('メールアドレスを入力してください。'); return false; }
+    if (!status) { alert('出欠を選択してください。'); return false; }
+    if (status === 'absent') {
+      if (!address) { alert('ご住所を入力してください。'); return false; }
+      if (delegateType === 'その他' && !delegateName) {
+        alert('委任先のお名前を入力してください。'); return false;
+      }
+    }
+    return true;
+  }
+
+  // ── EmailJS 送信 ──
+  async function sendEmails({ name, email, status, address, delegateType, delegateName, editUrl }) {
+    const statusLabel  = status === 'attending' ? '出席' : '欠席';
+    const delegateInfo = status === 'absent'
+      ? `委任先：${delegateName}（${delegateType}）\nご住所：${address}`
+      : '－';
+
+    // ユーザー宛
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_USER_TMPL, {
+      to_name:       name,
+      to_email:      email,
+      status_label:  statusLabel,
+      delegate_info: delegateInfo,
+      edit_url:      editUrl,
+    }, EMAILJS_PUBLIC_KEY);
+
+    // 管理者宛
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_ADMIN_TMPL, {
+      to_name:       '管理者',
+      to_email:      ADMIN_EMAIL,
+      from_name:     name,
+      from_email:    email,
+      status_label:  statusLabel,
+      delegate_info: delegateInfo,
+    }, EMAILJS_PUBLIC_KEY);
+  }
+
+  // ── 新規送信 ──
+  document.getElementById('rsvp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    if (form.dataset.editId) return; // 編集モードは別ハンドラ
+
+    const vals = collectValues();
+    if (!validate(vals)) return;
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; btn.textContent = '送信中…';
+
+    const id        = generateUUID();
+    const editToken = generateUUID();
+    const editUrl   = `${GITHUB_PAGES_URL}/index.html?token=${editToken}`;
+
+    try {
+      await addDoc(collection(db, 'rsvp'), {
+        id,
+        name:         vals.name,
+        email:        vals.email,
+        status:       vals.status,
+        address:      vals.address,
+        delegateType: vals.delegateType ?? '',
+        delegateName: vals.delegateName ?? '',
+        editToken,
+        createdAt: serverTimestamp()
+      });
+
+      await sendEmails({ ...vals, editUrl });
+
+      document.getElementById('rsvp-form').style.display    = 'none';
+      document.getElementById('success-message').style.display = 'block';
+    } catch (err) {
+      console.error(err);
+      alert('送信に失敗しました。しばらく経ってから再度お試しください。\n' + err.message);
+      btn.disabled = false; btn.textContent = '送信する';
+    }
+  });
+
+  // ── 編集モード読み込み ──
+  (async () => {
+    const params = new URLSearchParams(location.search);
+    const token  = params.get('token');
+    if (!token) return;
+
+    document.getElementById('edit-notice').style.display = 'block';
+    document.getElementById('page-title').textContent    = '出欠内容の変更';
+
+    const q    = query(collection(db, 'rsvp'), where('editToken', '==', token));
+    const snap = await getDocs(q);
+    if (snap.empty) { alert('該当データが見つかりません。'); return; }
+
+    const docRef = snap.docs[0];
+    const data   = docRef.data();
+
+    document.getElementById('name').value  = data.name;
+    document.getElementById('email').value = data.email;
+    statusSelect.value = data.status;
+    statusSelect.dispatchEvent(new Event('change'));
+
+    if (data.status === 'absent') {
+      document.getElementById('address').value = data.address || '';
+      delegateSelect.value = data.delegateType || '';
+      delegateSelect.dispatchEvent(new Event('change'));
+      if (data.delegateType === 'その他') {
+        document.getElementById('custom-delegate-name').value = data.delegateName || '';
+      }
+    }
+
+    const form = document.getElementById('rsvp-form');
+    form.dataset.editId    = docRef.id;
+    form.dataset.editToken = token;
+    document.getElementById('submit-btn').textContent = '変更を保存する';
+  })();
+
+  // ── 編集保存 ──
+  document.getElementById('rsvp-form').addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form.dataset.editId) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+
+    const vals = collectValues();
+    if (!validate(vals)) return;
+
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true; btn.textContent = '保存中…';
+
+    try {
+      await updateDoc(doc(db, 'rsvp', form.dataset.editId), {
+        status:       vals.status,
+        address:      vals.address,
+        delegateType: vals.delegateType ?? '',
+        delegateName: vals.delegateName ?? '',
+      });
+
+      document.getElementById('rsvp-form').style.display    = 'none';
+      const sm = document.getElementById('success-message');
+      sm.style.display = 'block';
+      sm.querySelector('p').textContent = '変更内容を保存しました。';
+    } catch (err) {
+      console.error(err);
+      alert('更新に失敗しました。\n' + err.message);
+      btn.disabled = false; btn.textContent = '変更を保存する';
+    }
+  }, true);
+</script>
+
+</body>
+</html>
