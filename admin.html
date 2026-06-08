@@ -3,187 +3,166 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理画面 ｜ 城下町洲本再生委員会 総会</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;700&family=Shippori+Mincho:wght@400;500;700&display=swap" rel="stylesheet">
-
-  <!-- jsPDF -->
+  <title>管理画面 | 城下町洲本再生委員会 総会</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <style>
-    :root {
-      --ink:       #1a1208;
-      --paper:     #f5f0e8;
-      --gold:      #8b6914;
-      --gold-lt:   #c9a84c;
-      --border:    #c8b99a;
-      --muted:     #6b5b3e;
-      --attend:    #2d5a27;
-      --absent:    #7a2020;
-      --bg-attend: #edf6ec;
-      --bg-absent: #f9eded;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Noto Serif JP', serif;
-      background: var(--paper);
-      color: var(--ink);
-      min-height: 100vh;
-      background-image: repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(139,105,20,.06) 31px, rgba(139,105,20,.06) 32px);
-    }
-    header {
-      background: var(--ink);
-      color: var(--gold-lt);
-      padding: 1.2rem 2rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      border-bottom: 3px solid var(--gold);
-      flex-wrap: wrap;
-    }
-    header .kamon { font-size: 1.6rem; opacity: .8; }
-    header .titles { flex: 1; }
-    header h1 { font-family: 'Shippori Mincho', serif; font-size: 1.25rem; letter-spacing: .2em; color: var(--gold-lt); }
-    header .sub { font-size: .72rem; color: #a09070; letter-spacing: .15em; margin-top: .2rem; }
-    .header-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
-    .btn {
-      padding: .5rem 1.1rem;
-      border-radius: 3px;
-      border: none;
-      font-family: 'Noto Serif JP', serif;
-      font-size: .82rem;
-      cursor: pointer;
-      letter-spacing: .08em;
-      transition: opacity .2s, transform .1s;
-    }
-    .btn:hover { opacity: .82; transform: translateY(-1px); }
-    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-    .btn-gold    { background: var(--gold); color: #fff; }
-    .btn-pdf     { background: #8b1a1a; color: #fff; }
-    .btn-outline { background: transparent; color: var(--gold-lt); border: 1px solid var(--gold-lt); }
-    .btn-csv     { background: #2d5a27; color: #fff; }
-    main { max-width: 1200px; margin: 0 auto; padding: 1.8rem 1.4rem 3rem; }
-    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.8rem; }
-    @media (max-width: 600px) { .summary-grid { grid-template-columns: 1fr 1fr; } }
-    .stat-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1.2rem 1.4rem;
-      box-shadow: 0 1px 8px rgba(139,105,20,.08);
-    }
-    .stat-card .label { font-size: .72rem; letter-spacing: .2em; color: var(--muted); margin-bottom: .4rem; }
-    .stat-card .value { font-family: 'Shippori Mincho', serif; font-size: 2rem; font-weight: 700; line-height: 1; }
-    .stat-card.attend .value { color: var(--attend); }
-    .stat-card.absent .value { color: var(--absent); }
-    .progress-wrap { margin-top: .6rem; background: #e8e0d0; border-radius: 99px; height: 6px; overflow: hidden; }
-    #progress-bar { height: 100%; background: var(--attend); border-radius: 99px; transition: width .6s ease; width: 0%; }
-    .pct-label { font-size: .78rem; color: var(--muted); margin-top: .3rem; }
-    .toolbar { display: flex; align-items: center; gap: .8rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    .toolbar label { font-size: .82rem; color: var(--muted); }
-    #filter-select {
-      padding: .45rem .8rem;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      background: #fff;
-      font-family: 'Noto Serif JP', serif;
-      font-size: .85rem;
-      color: var(--ink);
-    }
-    #table-wrap { overflow-x: auto; }
-    #rsvp-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      box-shadow: 0 1px 12px rgba(139,105,20,.1);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    #rsvp-table thead th {
-      background: var(--ink);
-      color: var(--gold-lt);
-      font-family: 'Shippori Mincho', serif;
-      font-size: .8rem;
-      letter-spacing: .2em;
-      padding: .85rem 1rem;
-      text-align: left;
-      white-space: nowrap;
-    }
-    #rsvp-table tbody tr { border-bottom: 1px solid #ede5d4; transition: background .15s; }
-    #rsvp-table tbody tr:hover { background: #faf7f0; }
-    #rsvp-table tbody td { padding: .8rem 1rem; font-size: .88rem; vertical-align: middle; }
-    .num { color: var(--border); width: 2.5rem; text-align: center; }
-    .muted-cell { color: var(--border); }
-    .name-cell { font-weight: 500; white-space: nowrap; }
-    .email-cell a { color: var(--gold); text-decoration: none; font-size: .82rem; }
-    .email-cell a:hover { text-decoration: underline; }
-    .address-cell { font-size: .8rem; color: var(--muted); max-width: 180px; line-height: 1.4; }
-    .empty-row { text-align: center; padding: 2rem !important; color: var(--muted); font-size: .9rem; }
-    .badge { display: inline-block; padding: .2rem .7rem; border-radius: 99px; font-size: .78rem; font-weight: 700; letter-spacing: .06em; }
-    .badge-attend { background: var(--bg-attend); color: var(--attend); }
-    .badge-absent { background: var(--bg-absent); color: var(--absent); }
-    .delegate-cell { line-height: 1.6; }
-    .delegate-type {
-      display: inline-block;
-      background: #f0e9d8;
-      color: var(--muted);
-      font-size: .72rem;
-      border-radius: 3px;
-      padding: .1rem .45rem;
-      margin-right: .3rem;
-    }
-    .delegate-name { font-weight: 500; }
-    .action-btns { display: flex; gap: .4rem; flex-wrap: wrap; }
-    .btn-dl, .btn-pdf-single {
-      border: none;
-      padding: .3rem .75rem;
-      border-radius: 3px;
-      font-size: .75rem;
-      cursor: pointer;
-      font-family: 'Noto Serif JP', serif;
-      letter-spacing: .06em;
-      transition: opacity .2s;
-      white-space: nowrap;
-    }
-    .btn-dl         { background: var(--gold); color: #fff; }
-    .btn-pdf-single { background: #8b1a1a;    color: #fff; }
-    .btn-dl:hover, .btn-pdf-single:hover { opacity: .8; }
-    #loading { display: flex; align-items: center; justify-content: center; padding: 3rem; gap: .8rem; color: var(--muted); font-size: .9rem; }
-    .spinner { width: 22px; height: 22px; border: 2px solid #e8dfc9; border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .page-footer { margin-top: 2.4rem; font-size: .72rem; color: var(--border); text-align: center; letter-spacing: .1em; }
+    :root{--ink:#1a1208;--paper:#f5f0e8;--gold:#8b6914;--gold-lt:#c9a84c;--border:#c8b99a;--muted:#6b5b3e;--attend:#2d5a27;--absent:#7a2020;--bg-attend:#edf6ec;--bg-absent:#f9eded;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Serif JP',serif;background:var(--paper);color:var(--ink);min-height:100vh;}
+    header{background:var(--ink);color:var(--gold-lt);padding:1.2rem 2rem;display:flex;align-items:center;gap:1rem;border-bottom:3px solid var(--gold);flex-wrap:wrap;}
+    header .kamon{font-size:1.6rem;opacity:.8;}
+    header .titles{flex:1;}
+    header h1{font-size:1.25rem;letter-spacing:.2em;color:var(--gold-lt);}
+    header .sub{font-size:.72rem;color:#a09070;letter-spacing:.15em;margin-top:.2rem;}
+    .header-actions{display:flex;gap:.6rem;flex-wrap:wrap;}
+    .btn{padding:.5rem 1.1rem;border-radius:3px;border:none;font-family:'Noto Serif JP',serif;font-size:.82rem;cursor:pointer;letter-spacing:.08em;transition:opacity .2s,transform .1s;}
+    .btn:hover{opacity:.82;transform:translateY(-1px);}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+    .btn-gold{background:var(--gold);color:#fff;}
+    .btn-red{background:#8b1a1a;color:#fff;}
+    .btn-outline{background:transparent;color:var(--gold-lt);border:1px solid var(--gold-lt);}
+    .btn-csv{background:#2d5a27;color:#fff;}
+    main{max-width:1200px;margin:0 auto;padding:1.8rem 1.4rem 3rem;}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.8rem;}
+    .stat-card{background:#fff;border:1px solid var(--border);border-radius:4px;padding:1.2rem 1.4rem;box-shadow:0 1px 8px rgba(139,105,20,.08);}
+    .stat-card .label{font-size:.72rem;letter-spacing:.2em;color:var(--muted);margin-bottom:.4rem;}
+    .stat-card .value{font-size:2rem;font-weight:700;line-height:1;}
+    .stat-card.attend .value{color:var(--attend);}
+    .stat-card.absent .value{color:var(--absent);}
+    .progress-wrap{margin-top:.6rem;background:#e8e0d0;border-radius:99px;height:6px;overflow:hidden;}
+    #progress-bar{height:100%;background:var(--attend);border-radius:99px;transition:width .6s ease;width:0%;}
+    .pct-label{font-size:.78rem;color:var(--muted);margin-top:.3rem;}
+    .toolbar{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;flex-wrap:wrap;}
+    .toolbar label{font-size:.82rem;color:var(--muted);}
+    #filter-select{padding:.45rem .8rem;border:1px solid var(--border);border-radius:3px;background:#fff;font-family:'Noto Serif JP',serif;font-size:.85rem;color:var(--ink);}
+    #table-wrap{overflow-x:auto;}
+    #rsvp-table{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 1px 12px rgba(139,105,20,.1);border-radius:4px;overflow:hidden;}
+    #rsvp-table thead th{background:var(--ink);color:var(--gold-lt);font-size:.8rem;letter-spacing:.2em;padding:.85rem 1rem;text-align:left;white-space:nowrap;}
+    #rsvp-table tbody tr{border-bottom:1px solid #ede5d4;transition:background .15s;}
+    #rsvp-table tbody tr:hover{background:#faf7f0;}
+    #rsvp-table tbody td{padding:.8rem 1rem;font-size:.88rem;vertical-align:middle;}
+    .num{color:var(--border);width:2.5rem;text-align:center;}
+    .muted-cell{color:var(--border);}
+    .name-cell{font-weight:500;white-space:nowrap;}
+    .email-cell a{color:var(--gold);text-decoration:none;font-size:.82rem;}
+    .address-cell{font-size:.8rem;color:var(--muted);max-width:180px;line-height:1.4;}
+    .empty-row{text-align:center;padding:2rem !important;color:var(--muted);font-size:.9rem;}
+    .badge{display:inline-block;padding:.2rem .7rem;border-radius:99px;font-size:.78rem;font-weight:700;}
+    .badge-attend{background:var(--bg-attend);color:var(--attend);}
+    .badge-absent{background:var(--bg-absent);color:var(--absent);}
+    .delegate-type{display:inline-block;background:#f0e9d8;color:var(--muted);font-size:.72rem;border-radius:3px;padding:.1rem .45rem;margin-right:.3rem;}
+    .delegate-name{font-weight:500;}
+    .action-btns{display:flex;gap:.4rem;flex-wrap:wrap;}
+    .btn-pdf-s,.btn-dl{border:none;padding:.3rem .7rem;border-radius:3px;font-size:.75rem;cursor:pointer;font-family:'Noto Serif JP',serif;letter-spacing:.06em;transition:opacity .2s;white-space:nowrap;}
+    .btn-pdf-s{background:#8b1a1a;color:#fff;}
+    .btn-dl{background:var(--gold);color:#fff;}
+    .btn-pdf-s:hover,.btn-dl:hover{opacity:.8;}
+    #loading{display:flex;align-items:center;justify-content:center;padding:3rem;gap:.8rem;color:var(--muted);font-size:.9rem;}
+    .spinner{width:22px;height:22px;border:2px solid #e8dfc9;border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .page-footer{margin-top:2.4rem;font-size:.72rem;color:var(--border);text-align:center;}
 
-    /* PDF生成中オーバーレイ */
-    #pdf-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(26,18,8,.65);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 1rem;
-      color: #f5f0e8;
-      font-family: 'Shippori Mincho', serif;
-      font-size: 1rem;
-      letter-spacing: .2em;
+    /* オーバーレイ */
+    #pdf-overlay{display:none;position:fixed;inset:0;background:rgba(26,18,8,.72);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:1rem;color:#f5f0e8;font-size:1rem;letter-spacing:.15em;}
+    .big-spinner{width:48px;height:48px;border:3px solid rgba(255,255,255,.2);border-top-color:#c9a84c;border-radius:50%;animation:spin .8s linear infinite;}
+
+    /* ===== 委任状テンプレート（画面外） ===== */
+    #del-tpl{
+      position:fixed;left:-9999px;top:0;
+      width:794px;height:1123px;
+      background:#fff;
+      font-family:'Noto Serif JP',serif;
+      color:#1a1208;
+      overflow:hidden;
     }
-    #pdf-overlay .big-spinner {
-      width: 48px; height: 48px;
-      border: 3px solid rgba(255,255,255,.2);
-      border-top-color: var(--gold-lt);
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
+    .del-frame-outer{position:absolute;inset:20px;border:2.5px solid #7a5a10;}
+    .del-frame-inner{position:absolute;inset:28px;border:1px solid #b89a50;}
+    .del-line{position:absolute;left:36px;right:36px;}
+    .del-line-t1{top:56px;border-top:2.5px solid #8b6914;}
+    .del-line-t2{top:62px;border-top:1px solid #c9a84c;}
+    .del-line-b1{bottom:56px;border-top:2.5px solid #8b6914;}
+    .del-line-b2{bottom:62px;border-top:1px solid #c9a84c;}
+
+    .del-header{position:absolute;top:72px;left:0;right:0;text-align:center;}
+    .del-org{font-size:13px;letter-spacing:.4em;color:#6b5b3e;margin-bottom:10px;}
+    .del-title{font-size:52px;font-weight:700;letter-spacing:.6em;color:#1a1208;}
+
+    .del-date{position:absolute;top:198px;right:60px;font-size:13px;color:#6b5b3e;letter-spacing:.08em;}
+
+    .del-body{position:absolute;top:248px;left:0;right:0;text-align:center;font-size:16px;line-height:2.2;letter-spacing:.06em;}
+
+    .del-block{
+      position:absolute;top:370px;left:70px;right:70px;
+      border:1.5px solid #c8b99a;border-radius:4px;overflow:hidden;background:#faf6ee;
     }
+    .del-row{display:flex;border-bottom:1px solid #e2d5bc;min-height:80px;align-items:stretch;}
+    .del-row:last-child{border-bottom:none;}
+    .del-lbl{
+      width:110px;min-width:110px;background:#ede4d0;
+      display:flex;align-items:center;justify-content:center;
+      font-size:13px;font-weight:700;color:#6b5b3e;letter-spacing:.18em;
+      border-right:1px solid #c8b99a;text-align:center;padding:10px 6px;
+    }
+    .del-val{flex:1;display:flex;align-items:center;padding:14px 22px;font-size:19px;font-weight:700;color:#1a1208;letter-spacing:.05em;line-height:1.55;word-break:break-all;}
+    .del-sub{font-size:13px;font-weight:400;color:#8b6914;margin-left:8px;letter-spacing:.1em;}
+
+    .del-end{position:absolute;bottom:108px;right:72px;font-size:16px;letter-spacing:.35em;}
+
+    .del-stamp{position:absolute;bottom:86px;left:72px;width:88px;height:88px;border:1.5px solid #c8b99a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#c8b99a;letter-spacing:.1em;}
+    .del-stamp-lbl{position:absolute;bottom:82px;left:170px;font-size:11px;color:#a09070;letter-spacing:.12em;}
+
+    .del-footer{position:absolute;bottom:30px;left:0;right:0;text-align:center;font-size:11px;color:#a09070;letter-spacing:.22em;}
   </style>
 </head>
 <body>
 
-<!-- PDF生成中オーバーレイ -->
 <div id="pdf-overlay">
   <div class="big-spinner"></div>
   <p id="pdf-status">PDF を生成中…</p>
+</div>
+
+<!-- 委任状テンプレート（画面外・html2canvasでキャプチャ） -->
+<div id="del-tpl">
+  <div class="del-frame-outer"></div>
+  <div class="del-frame-inner"></div>
+  <div class="del-line del-line-t1"></div>
+  <div class="del-line del-line-t2"></div>
+  <div class="del-line del-line-b1"></div>
+  <div class="del-line del-line-b2"></div>
+
+  <div class="del-header">
+    <p class="del-org">城下町洲本再生委員会</p>
+    <p class="del-title">委　任　状</p>
+  </div>
+
+  <p class="del-date" id="del-date"></p>
+
+  <div class="del-body">
+    私は、城下町洲本再生委員会総会における議決権を<br>
+    下記の者に委任します。
+  </div>
+
+  <div class="del-block">
+    <div class="del-row">
+      <div class="del-lbl">委 任 者</div>
+      <div class="del-val" id="del-name">&nbsp;</div>
+    </div>
+    <div class="del-row">
+      <div class="del-lbl">住　　所</div>
+      <div class="del-val" id="del-addr" style="font-size:15px;font-weight:400;">&nbsp;</div>
+    </div>
+    <div class="del-row">
+      <div class="del-lbl">受 任 者</div>
+      <div class="del-val" id="del-delegate">&nbsp;</div>
+    </div>
+  </div>
+
+  <p class="del-end">以　上</p>
+  <div class="del-stamp">印</div>
+  <p class="del-stamp-lbl">委任者 印</p>
+  <p class="del-footer">城下町洲本再生委員会　総会</p>
 </div>
 
 <header>
@@ -194,8 +173,8 @@
   </div>
   <div class="header-actions">
     <button class="btn btn-outline" id="btn-refresh">🔄 更新</button>
-    <button class="btn btn-pdf"     id="btn-pdf-all">📑 全委任状PDF</button>
-    <button class="btn btn-gold"    id="btn-download-all">📄 全委任状TXT</button>
+    <button class="btn btn-red"     id="btn-pdf-all">📑 全委任状PDF</button>
+    <button class="btn btn-gold"    id="btn-txt-all">📄 全委任状TXT</button>
     <button class="btn btn-csv"     id="btn-csv">⬇ CSV出力</button>
   </div>
 </header>
@@ -203,18 +182,15 @@
 <main>
   <div class="summary-grid">
     <div class="stat-card">
-      <p class="label">回答合計</p>
-      <p class="value" id="total-count">－</p>
+      <p class="label">回答合計</p><p class="value" id="total-count">－</p>
     </div>
     <div class="stat-card attend">
-      <p class="label">出席</p>
-      <p class="value" id="attend-count">－</p>
+      <p class="label">出席</p><p class="value" id="attend-count">－</p>
       <div class="progress-wrap"><div id="progress-bar"></div></div>
       <p class="pct-label">出席率 <span id="attend-pct">－</span>%</p>
     </div>
     <div class="stat-card absent">
-      <p class="label">欠席</p>
-      <p class="value" id="absent-count">－</p>
+      <p class="label">欠席</p><p class="value" id="absent-count">－</p>
     </div>
   </div>
 
@@ -233,19 +209,13 @@
     <table id="rsvp-table">
       <thead>
         <tr>
-          <th>No</th>
-          <th>お名前</th>
-          <th>メール</th>
-          <th>出欠</th>
-          <th>委任先</th>
-          <th>ご住所</th>
-          <th>委任状</th>
+          <th>No</th><th>お名前</th><th>メール</th><th>出欠</th>
+          <th>委任先</th><th>ご住所</th><th>委任状</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
-
   <p class="page-footer">© 城下町洲本再生委員会 — 管理者専用ページ</p>
 </main>
 
@@ -255,372 +225,151 @@
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey:            "AIzaSyAx9hxL3InRQUU1RYZ6ilrejFPrzFpkW5s",
-    authDomain:        "saisei-fca58.firebaseapp.com",
-    projectId:         "saisei-fca58",
-    storageBucket:     "saisei-fca58.firebasestorage.app",
-    messagingSenderId: "530505211797",
-    appId:             "1:530505211797:web:7d43f127e6abf5edcde09c",
-    measurementId:     "G-ZZ1G98KX91"
+    apiKey:"AIzaSyAx9hxL3InRQUU1RYZ6ilrejFPrzFpkW5s",
+    authDomain:"saisei-fca58.firebaseapp.com",
+    projectId:"saisei-fca58",
+    storageBucket:"saisei-fca58.firebasestorage.app",
+    messagingSenderId:"530505211797",
+    appId:"1:530505211797:web:7d43f127e6abf5edcde09c",
+    measurementId:"G-ZZ1G98KX91"
   };
-
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
   let allRecords = [];
 
-  // ── XSS対策 ──
-  function h(s) {
-    return String(s ?? '').replace(/[&<>"']/g,
-      c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
+  function h(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-  // ════════════════════════════════
-  //  PDF生成（jsPDF）
-  // ════════════════════════════════
-
-  // 日本語フォント読み込み（Google Fonts API → Base64）
-  // jsPDFは標準で日本語非対応のため、カスタムフォントを埋め込む必要がある。
-  // ここではNoto Serif JPをfetch→ArrayBuffer→Base64で埋め込む。
-  let fontBase64 = null;
-
-  async function loadFont() {
-    if (fontBase64) return fontBase64;
-    // Google Fonts からNoto Serif JP Regular のwoff2を取得
-    // CORSの問題を避けるため fonts.gstatic.com から直接取得
-    const cssResp = await fetch(
-      'https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400',
-      { headers: { 'User-Agent': 'Mozilla/5.0' } }
-    );
-    const css = await cssResp.text();
-    // woff2 URLを抽出
-    const match = css.match(/url\((https:\/\/fonts\.gstatic\.com[^)]+\.woff2)\)/);
-    if (!match) throw new Error('フォントURLの取得に失敗しました');
-    const fontResp = await fetch(match[1]);
-    const buf = await fontResp.arrayBuffer();
-    // ArrayBuffer → Base64
-    let binary = '';
-    const bytes = new Uint8Array(buf);
-    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-    fontBase64 = btoa(binary);
-    return fontBase64;
-  }
-
-  // 1枚の委任状ページをPDFに描画
-  function drawDelegationPage(pdf, r, isFirst) {
-    if (!isFirst) pdf.addPage();
-
-    const W = pdf.internal.pageSize.getWidth();   // 210mm (A4)
-    const H = pdf.internal.pageSize.getHeight();  // 297mm (A4)
-
-    const today = new Date();
-    const yyyy  = today.getFullYear();
-    const mm    = String(today.getMonth() + 1).padStart(2, '0');
-    const dd    = String(today.getDate()).padStart(2, '0');
-    const dateStr = `${yyyy}年${mm}月${dd}日`;
-
+  // ── 委任状テンプレートに値を流し込む ──
+  function fillTpl(r){
+    const t = new Date();
+    document.getElementById('del-date').textContent = `${t.getFullYear()}年${t.getMonth()+1}月${t.getDate()}日`;
+    document.getElementById('del-name').textContent = r.name;
+    document.getElementById('del-addr').textContent = r.address || '';
     const dn = r.delegateName || r.delegateType || '議長';
     const dt = r.delegateType || '議長';
-    const addr = r.address || '';
-
-    // ── 外枠（二重線風） ──
-    pdf.setDrawColor(100, 70, 20);
-    pdf.setLineWidth(0.8);
-    pdf.rect(12, 12, W - 24, H - 24);
-    pdf.setLineWidth(0.3);
-    pdf.rect(15, 15, W - 30, H - 30);
-
-    // ── 上部装飾ライン ──
-    pdf.setDrawColor(139, 105, 20);
-    pdf.setLineWidth(1.2);
-    pdf.line(20, 38, W - 20, 38);
-    pdf.setLineWidth(0.3);
-    pdf.line(20, 41, W - 20, 41);
-
-    // ── 下部装飾ライン ──
-    pdf.line(20, H - 38, W - 20, H - 38);
-    pdf.setLineWidth(1.2);
-    pdf.line(20, H - 41, W - 20, H - 41);
-
-    // ── タイトル「委任状」 ──
-    pdf.setFont('NotoSerifJP', 'normal');
-    pdf.setFontSize(32);
-    pdf.setTextColor(26, 18, 8);
-    pdf.text('委　任　状', W / 2, 62, { align: 'center' });
-
-    // ── 組織名・日付 ──
-    pdf.setFontSize(10);
-    pdf.setTextColor(107, 91, 62);
-    pdf.text('城下町洲本再生委員会', W / 2, 76, { align: 'center' });
-
-    pdf.setFontSize(10);
-    pdf.setTextColor(26, 18, 8);
-    pdf.text(dateStr, W - 28, 76, { align: 'right' });
-
-    // ── 本文 ──
-    pdf.setFontSize(12);
-    pdf.setTextColor(26, 18, 8);
-    const body = '私は、城下町洲本再生委員会総会における議決権を';
-    const body2 = '下記の者に委任します。';
-    pdf.text(body,  W / 2, 105, { align: 'center' });
-    pdf.text(body2, W / 2, 120, { align: 'center' });
-
-    // ── 罫線ブロック ──
-    const boxX = 35, boxY = 135, boxW = W - 70, boxH = 95;
-    pdf.setDrawColor(180, 155, 120);
-    pdf.setFillColor(252, 249, 243);
-    pdf.setLineWidth(0.4);
-    pdf.roundedRect(boxX, boxY, boxW, boxH, 2, 2, 'FD');
-
-    // ブロック内ラベル列
-    pdf.setFontSize(10);
-    pdf.setTextColor(107, 91, 62);
-
-    // 区切り線
-    const lineY1 = boxY + 30, lineY2 = boxY + 55, lineY3 = boxY + 80;
-    pdf.setDrawColor(210, 190, 155);
-    pdf.setLineWidth(0.25);
-    [lineY1, lineY2, lineY3].forEach(y => pdf.line(boxX + 4, y, boxX + boxW - 4, y));
-
-    // 委任者
-    pdf.setFontSize(9);
-    pdf.setTextColor(107, 91, 62);
-    pdf.text('■ 委任者（欠席者）', boxX + 8, boxY + 14);
-    pdf.setFontSize(13);
-    pdf.setTextColor(26, 18, 8);
-    pdf.text(r.name, boxX + 8, boxY + 26);
-
-    // 住所
-    pdf.setFontSize(9);
-    pdf.setTextColor(107, 91, 62);
-    pdf.text('■ 住　所', boxX + 8, boxY + 40);
-    pdf.setFontSize(11);
-    pdf.setTextColor(26, 18, 8);
-    // 長い住所は折り返し
-    const addrLines = pdf.splitTextToSize(addr, boxW - 16);
-    pdf.text(addrLines, boxX + 8, boxY + 51);
-
-    // 受任者
-    pdf.setFontSize(9);
-    pdf.setTextColor(107, 91, 62);
-    pdf.text('■ 受任者（委任先）', boxX + 8, boxY + 65);
-    pdf.setFontSize(13);
-    pdf.setTextColor(26, 18, 8);
-    pdf.text(`${dn}`, boxX + 8, boxY + 77);
-    pdf.setFontSize(10);
-    pdf.setTextColor(139, 105, 20);
-    pdf.text(`（${dt}）`, boxX + 8 + pdf.getTextWidth(dn) + 2, boxY + 77);
-
-    // 「以上」
-    pdf.setFontSize(11);
-    pdf.setTextColor(26, 18, 8);
-    pdf.text('以　上', W - 28, boxY + boxH + 20, { align: 'right' });
-
-    // ── 印鑑欄 ──
-    const stampX = W - 55, stampY = H - 90, stampR = 18;
-    pdf.setDrawColor(180, 155, 120);
-    pdf.setLineWidth(0.4);
-    pdf.circle(stampX, stampY, stampR);
-    pdf.setFontSize(8);
-    pdf.setTextColor(180, 155, 120);
-    pdf.text('印', stampX, stampY + 3, { align: 'center' });
-
-    // ── フッター ──
-    pdf.setFontSize(8);
-    pdf.setTextColor(180, 155, 120);
-    pdf.text('城下町洲本再生委員会', W / 2, H - 20, { align: 'center' });
+    document.getElementById('del-delegate').innerHTML =
+      `${h(dn)}<span class="del-sub">（${h(dt)}）</span>`;
   }
 
-  // ── PDF生成メイン ──
-  async function generatePDF(records, filename) {
+  // ── 1枚キャプチャ ──
+  async function capturePage(r){
+    fillTpl(r);
+    await new Promise(res => setTimeout(res, 150)); // フォント描画待ち
+    return html2canvas(document.getElementById('del-tpl'),{
+      scale:2, useCORS:true, backgroundColor:'#ffffff',
+      logging:false, width:794, height:1123
+    });
+  }
+
+  // ── PDF生成 ──
+  async function generatePDF(records, filename){
     const overlay = document.getElementById('pdf-overlay');
     const status  = document.getElementById('pdf-status');
     overlay.style.display = 'flex';
-    status.textContent = 'フォントを読み込み中…';
-
     try {
-      const b64 = await loadFont();
-      status.textContent = 'PDF を生成中…';
-
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-      // フォント登録
-      pdf.addFileToVFS('NotoSerifJP.woff2', b64);
-      pdf.addFont('NotoSerifJP.woff2', 'NotoSerifJP', 'normal');
-      pdf.setFont('NotoSerifJP', 'normal');
-
-      records.forEach((r, i) => {
-        status.textContent = `PDF生成中… ${i + 1} / ${records.length}`;
-        drawDelegationPage(pdf, r, i === 0);
-      });
-
+      const {jsPDF} = window.jspdf;
+      const pdf = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+      for(let i=0; i<records.length; i++){
+        status.textContent = `PDF生成中… ${i+1} / ${records.length} 枚`;
+        if(i>0) pdf.addPage();
+        const canvas = await capturePage(records[i]);
+        pdf.addImage(canvas.toDataURL('image/jpeg',0.97),'JPEG',0,0,210,297);
+      }
       pdf.save(filename);
-    } catch (err) {
+    } catch(err){
       console.error(err);
-      alert('PDF生成に失敗しました。\n' + err.message);
+      alert('PDF生成に失敗しました。\n'+err.message);
     } finally {
-      overlay.style.display = 'none';
+      overlay.style.display='none';
     }
   }
 
-  // ════════════════════════════════
-  //  データ読み込み
-  // ════════════════════════════════
-  async function loadData() {
-    document.getElementById('loading').style.display    = 'flex';
-    document.getElementById('table-wrap').style.display = 'none';
-
-    const snap = await getDocs(query(collection(db, 'rsvp'), orderBy('createdAt', 'desc')));
-    allRecords  = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-
-    renderSummary(allRecords);
-    renderTable(allRecords);
-
-    document.getElementById('loading').style.display    = 'none';
-    document.getElementById('table-wrap').style.display = 'block';
+  // ── データ読み込み ──
+  async function loadData(){
+    document.getElementById('loading').style.display='flex';
+    document.getElementById('table-wrap').style.display='none';
+    const snap = await getDocs(query(collection(db,'rsvp'),orderBy('createdAt','desc')));
+    allRecords  = snap.docs.map(d=>({docId:d.id,...d.data()}));
+    renderSummary(allRecords); renderTable(allRecords);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('table-wrap').style.display='block';
   }
 
-  function renderSummary(records) {
-    const total  = records.length;
-    const attend = records.filter(r => r.status === 'attending').length;
-    const absent = records.filter(r => r.status === 'absent').length;
-    document.getElementById('total-count').textContent  = total;
-    document.getElementById('attend-count').textContent = attend;
-    document.getElementById('absent-count').textContent = absent;
-    const pct = total > 0 ? Math.round((attend / total) * 100) : 0;
-    document.getElementById('attend-pct').textContent   = pct;
-    document.getElementById('progress-bar').style.width = pct + '%';
+  function renderSummary(records){
+    const total=records.length, attend=records.filter(r=>r.status==='attending').length, absent=records.filter(r=>r.status==='absent').length;
+    document.getElementById('total-count').textContent=total;
+    document.getElementById('attend-count').textContent=attend;
+    document.getElementById('absent-count').textContent=absent;
+    const pct=total>0?Math.round((attend/total)*100):0;
+    document.getElementById('attend-pct').textContent=pct;
+    document.getElementById('progress-bar').style.width=pct+'%';
   }
 
-  function renderTable(records) {
-    const tbody = document.querySelector('#rsvp-table tbody');
-    tbody.innerHTML = '';
-
-    if (!records.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">データがありません</td></tr>';
-      return;
-    }
-
-    records.forEach((r, i) => {
-      const isAttend = r.status === 'attending';
-      const badge    = isAttend
-        ? '<span class="badge badge-attend">出席</span>'
-        : '<span class="badge badge-absent">欠席</span>';
-
-      const delegateCell = isAttend
-        ? '<span class="muted-cell">－</span>'
-        : `<span class="delegate-type">${h(r.delegateType || '議長')}</span><span class="delegate-name">${h(r.delegateName || r.delegateType || '議長')}</span>`;
-
-      const addressCell = isAttend
-        ? '<span class="muted-cell">－</span>'
-        : `<div class="address-cell">${h(r.address || '').replace(/\n/g,'<br>')}</div>`;
-
-      const actionCell = !isAttend
-        ? `<div class="action-btns">
-             <button class="btn-pdf-single" data-idx="${i}">📑 PDF</button>
-             <button class="btn-dl"         data-idx="${i}">📄 TXT</button>
-           </div>`
-        : '';
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="num">${i + 1}</td>
-        <td class="name-cell">${h(r.name)}</td>
-        <td class="email-cell"><a href="mailto:${h(r.email)}">${h(r.email)}</a></td>
-        <td>${badge}</td>
-        <td class="delegate-cell">${delegateCell}</td>
-        <td>${addressCell}</td>
-        <td>${actionCell}</td>
-      `;
+  function renderTable(records){
+    const tbody=document.querySelector('#rsvp-table tbody');
+    tbody.innerHTML='';
+    if(!records.length){tbody.innerHTML='<tr><td colspan="7" class="empty-row">データがありません</td></tr>';return;}
+    records.forEach((r,i)=>{
+      const isA=r.status==='attending';
+      const badge=isA?'<span class="badge badge-attend">出席</span>':'<span class="badge badge-absent">欠席</span>';
+      const delCell=isA?'<span class="muted-cell">－</span>'
+        :`<span class="delegate-type">${h(r.delegateType||'議長')}</span><span class="delegate-name">${h(r.delegateName||r.delegateType||'議長')}</span>`;
+      const addrCell=isA?'<span class="muted-cell">－</span>'
+        :`<div class="address-cell">${h(r.address||'').replace(/\n/g,'<br>')}</div>`;
+      const actCell=!isA
+        ?`<div class="action-btns"><button class="btn-pdf-s" data-idx="${i}">📑 PDF</button><button class="btn-dl" data-idx="${i}">📄 TXT</button></div>`:'';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td class="num">${i+1}</td><td class="name-cell">${h(r.name)}</td><td class="email-cell"><a href="mailto:${h(r.email)}">${h(r.email)}</a></td><td>${badge}</td><td>${delCell}</td><td>${addrCell}</td><td>${actCell}</td>`;
       tbody.appendChild(tr);
     });
-
-    // 個別PDF
-    document.querySelectorAll('.btn-pdf-single').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const r = records[+btn.dataset.idx];
-        generatePDF([r], `委任状_${r.name}.pdf`);
-      });
+    document.querySelectorAll('.btn-pdf-s').forEach(btn=>{
+      btn.addEventListener('click',()=>{const r=records[+btn.dataset.idx];generatePDF([r],`委任状_${r.name}.pdf`);});
     });
-    // 個別TXT
-    document.querySelectorAll('.btn-dl').forEach(btn => {
-      btn.addEventListener('click', () => downloadTxt(records[+btn.dataset.idx]));
+    document.querySelectorAll('.btn-dl').forEach(btn=>{
+      btn.addEventListener('click',()=>dlTxt(records[+btn.dataset.idx]));
     });
   }
 
-  // ── TXTダウンロード ──
-  function makeTxt(r) {
-    const dn = r.delegateName || r.delegateType || '議長';
-    const dt = r.delegateType || '議長';
-    return [
-      '委　任　状',
-      '',
-      '私は、城下町洲本再生委員会総会における議決権を下記の者に委任します。',
-      '',
-      `委任者：${r.name}`,
-      `住　所：${r.address || ''}`,
-      `受任者：${dn}（${dt}）`,
-      '',
-      '以上',
-    ].join('\n');
+  function makeTxt(r){
+    const dn=r.delegateName||r.delegateType||'議長', dt=r.delegateType||'議長';
+    return ['委　任　状','','私は、城下町洲本再生委員会総会における議決権を下記の者に委任します。','',
+      `委任者：${r.name}`,`住　所：${r.address||''}`,`受任者：${dn}（${dt}）`,'','以上'].join('\n');
+  }
+  function dlTxt(r){
+    const blob=new Blob([makeTxt(r)],{type:'text/plain;charset=utf-8'});
+    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:`委任状_${r.name}.txt`});
+    a.click();URL.revokeObjectURL(a.href);
   }
 
-  function downloadTxt(r) {
-    const blob = new Blob([makeTxt(r)], { type: 'text/plain;charset=utf-8' });
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(blob),
-      download: `委任状_${r.name}.txt`
-    });
-    a.click(); URL.revokeObjectURL(a.href);
-  }
-
-  // ── 全委任状PDF ──
-  document.getElementById('btn-pdf-all').addEventListener('click', () => {
-    const absent = allRecords.filter(r => r.status === 'absent');
-    if (!absent.length) { alert('欠席者がいません。'); return; }
-    generatePDF(absent, '委任状_一括.pdf');
+  document.getElementById('btn-pdf-all').addEventListener('click',()=>{
+    const ab=allRecords.filter(r=>r.status==='absent');
+    if(!ab.length){alert('欠席者がいません。');return;}
+    generatePDF(ab,'委任状_一括.pdf');
   });
-
-  // ── 全委任状TXT ──
-  document.getElementById('btn-download-all').addEventListener('click', () => {
-    const absent = allRecords.filter(r => r.status === 'absent');
-    if (!absent.length) { alert('欠席者がいません。'); return; }
-    const text = absent.map(r => makeTxt(r) + '\n\n' + '─'.repeat(40)).join('\n\n');
-    const blob  = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(blob), download: '委任状_一括.txt'
-    });
-    a.click(); URL.revokeObjectURL(a.href);
+  document.getElementById('btn-txt-all').addEventListener('click',()=>{
+    const ab=allRecords.filter(r=>r.status==='absent');
+    if(!ab.length){alert('欠席者がいません。');return;}
+    const text=ab.map(r=>makeTxt(r)+'\n\n'+'─'.repeat(40)).join('\n\n');
+    const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'委任状_一括.txt'});
+    a.click();URL.revokeObjectURL(a.href);
   });
-
-  // ── CSV ──
-  document.getElementById('btn-csv').addEventListener('click', () => {
-    const header = ['No','名前','メール','出欠','委任先区分','委任先名','住所','登録日時'];
-    const rows = allRecords.map((r, i) => {
-      const dt = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString('ja-JP') : '';
-      return [i+1, r.name, r.email,
-        r.status === 'attending' ? '出席' : '欠席',
-        r.delegateType || '', r.delegateName || '',
-        r.address || '', dt
-      ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(',');
+  document.getElementById('btn-csv').addEventListener('click',()=>{
+    const header=['No','名前','メール','出欠','委任先区分','委任先名','住所','登録日時'];
+    const rows=allRecords.map((r,i)=>{
+      const dt=r.createdAt?.toDate?r.createdAt.toDate().toLocaleString('ja-JP'):'';
+      return [i+1,r.name,r.email,r.status==='attending'?'出席':'欠席',r.delegateType||'',r.delegateName||'',r.address||'',dt].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
     });
-    const csv  = '\uFEFF' + [header.join(','), ...rows].join('\n');
-    const blob  = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(blob), download: '出欠一覧.csv'
-    });
-    a.click(); URL.revokeObjectURL(a.href);
+    const csv='\uFEFF'+[header.join(','),...rows].join('\n');
+    const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'出欠一覧.csv'});
+    a.click();URL.revokeObjectURL(a.href);
   });
-
-  // ── フィルター ──
-  document.getElementById('filter-select').addEventListener('change', function () {
-    const val = this.value;
-    renderTable(val === 'all' ? allRecords : allRecords.filter(r => r.status === val));
+  document.getElementById('filter-select').addEventListener('change',function(){
+    renderTable(this.value==='all'?allRecords:allRecords.filter(r=>r.status===this.value));
   });
-
-  document.getElementById('btn-refresh').addEventListener('click', loadData);
+  document.getElementById('btn-refresh').addEventListener('click',loadData);
   loadData();
 </script>
-
 </body>
 </html>
